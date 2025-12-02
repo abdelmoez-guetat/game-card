@@ -17,35 +17,30 @@ async function main() {
     for (const file of avatarFiles) {
       const keyword = file.replace(/\.jpe?g/i, "").replace(/_/g, " ");
       const imagePath = `avatars/${file}`;
-      avatars[keyword] = await sharp(imagePath).resize(200).toBuffer();
+      avatars[keyword] = await sharp(imagePath).resize(146, 140).toBuffer();
     }
 
     for (let i = 0; i < lines.length; i++) {
-      const [topText, bottomText] = lines[i].replace(/"/g, "").split(",");
+      const line = lines[i];
+      const [topText, bottomText] = line.replace(/"/g, "").split(",");
 
-      const topAvatars = Object.keys(avatars).filter(keyword => topText.includes(keyword));
-      const bottomAvatars = Object.keys(avatars).filter(keyword => bottomText.includes(keyword));
+      const foundKeywords = [...new Set(Object.keys(avatars).filter(keyword => line.includes(keyword)))];
 
       const compositeOps = [];
 
-      const addAvatarsToComposite = (avatarKeywords, y) => {
-          if (avatarKeywords.length === 1) {
-              const avatarBuffer = avatars[avatarKeywords[0]];
-              compositeOps.push({ input: avatarBuffer, top: y, left: 550 });
-              compositeOps.push({ input: avatarBuffer, top: y + 250, left: 50 });
-          } else if (avatarKeywords.length >= 2) {
-              const avatarBuffer1 = avatars[avatarKeywords[0]];
-              compositeOps.push({ input: avatarBuffer1, top: y, left: 550 });
-              compositeOps.push({ input: avatarBuffer1, top: y + 250, left: 50 });
+      if (foundKeywords.length === 1) {
+        const avatarBuffer = avatars[foundKeywords[0]];
+        compositeOps.push({ input: avatarBuffer, top: 18, left: 508 });
+        compositeOps.push({ input: avatarBuffer, top: 880, left: 18 });
+      } else if (foundKeywords.length >= 2) {
+        const avatarBuffer1 = avatars[foundKeywords[0]];
+        compositeOps.push({ input: avatarBuffer1, top: 18, left: 508 });
+        compositeOps.push({ input: avatarBuffer1, top: 880, left: 18 });
 
-              const avatarBuffer2 = avatars[avatarKeywords[1]];
-              compositeOps.push({ input: avatarBuffer2, top: y, left: 50 });
-              compositeOps.push({ input: avatarBuffer2, top: y + 250, left: 550 });
-          }
+        const avatarBuffer2 = avatars[foundKeywords[1]];
+        compositeOps.push({ input: avatarBuffer2, top: 18, left: 18 });
+        compositeOps.push({ input: avatarBuffer2, top: 880, left: 508 });
       }
-
-      addAvatarsToComposite(topAvatars, 50);
-      addAvatarsToComposite(bottomAvatars, 600);
 
       const createTextSvg = (text, width, height) => {
           return `
